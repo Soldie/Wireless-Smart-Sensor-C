@@ -9,6 +9,7 @@
 #include <WiFiNINA.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <Time.h>
 #include "config.h"
 
 // Defining all possible states for the sensor
@@ -43,10 +44,6 @@ const int WRITE_BYTE = 0x00;
 // Pins used for the connection with the sensor
 const int CHIP_SELECT_PIN = 7;
 
-// Replace with your network credentials
-char ssid[] = "VTR-2582559";
-char pass[] = "4wptdnBHjfxz";
-
 // the WiFi radio's status
 int status = WL_IDLE_STATUS; 
 
@@ -57,10 +54,7 @@ NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", -14400, 60000);
 // Variables to save date and time
 String formattedDate;
 String dayStamp;
-String timeStamp;
-
-// Interval of recording, default is 10 seconds
-long interval = 10000; 
+String timeStamp; 
 
 /*
  * Standard setup function

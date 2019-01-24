@@ -1,7 +1,8 @@
 
 /*
  * Initial code for Wireless Smart Sensors using Arduino MKR 
- * WiFi 1010 plataform and accelerometer ADXL355
+ * WiFi 1010 plataform and accelerometer ADXL355. For while,
+ * using NTP to synchronize clocks with a NTP server (probably it will change).
  * 
  */
 
@@ -10,29 +11,31 @@
 void setup(){
 
   // Initialize Serial Monitor
-  Serial.begin(115200);
+  Serial.begin(BAUD_RATE);
   while (!Serial) {
     ; // wait for serial port to connect
   }
 
   // Connecting to WiFi
   Serial.print("Connecting to ");
-  Serial.println(ssid);
+  Serial.println(SSID);
   
-  status = WiFi.begin(ssid, pass);
+  status = WiFi.begin(SSID, PASS);
   
   while (status != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
     
-    status = WiFi.begin(ssid, pass);
+    status = WiFi.begin(SSID, PASS);
   }
-  
+
+  /*******************DEBUG*************************/
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+  /*******************DEBUG*************************/
 
   // Initialize a NTPClient to get time
   timeClient.begin();
@@ -58,6 +61,7 @@ void wait(){
   // Listening to serial port
   while(Serial.available() != 0){
 
+    /*******************DEBUG*************************************************/
     // The formattedDate comes with the following format:
     // 2018-05-28T16:00:13Z
     // We need to extract date and time
@@ -74,12 +78,12 @@ void wait(){
     Serial.print("HOUR: ");
     Serial.println(timeStamp);
     delay(1000);
+    /*******************DEBUG*************************************************/
     
   }
 
-  char task[8] = "r 11:20";
-  //task = Serial.read();
-
+  String task;
+  task = Serial.readString();
 
   // New state depending on the task sent
   if (task[0] == 's'){
@@ -87,6 +91,13 @@ void wait(){
   }
   else if (task[0] == 'r'){
     sensor_state = RECORD;
+
+    int hours = (task[2] * 10) + task[3];
+    int minutes = (task[5] * 10) + task[6];
+
+    while(hours >= hour() && minutes > minute()){
+      // Wait until reaches the time to start recording
+    }
   }
   
 }
@@ -94,12 +105,16 @@ void wait(){
 
 void sync(){
 
-  while(!timeClient.update()) {
-    timeClient.forceUpdate();
-  }
+  Serial.print("Synchronizing clocks");
 
+  // Synchronizing clocks
+  timeClient.forceUpdate();
+  
   // Go back to WAIT state
   sensor_state = WAIT;
+
+  Serial.print("Done");
+  
 }
 
 
@@ -141,7 +156,7 @@ void record(){
   unsigned long currentMillis = previousMillis;
 
   // Run during time interval 
-  while ((currentMillis - previousMillis) < interval){ 
+  while ((currentMillis - previousMillis) < INTERVAL){ 
 
     int axisAddresses[] = {XDATA1, XDATA2, XDATA3, YDATA1, YDATA2, YDATA3, ZDATA1, ZDATA2, ZDATA3};
     int axisMeasures[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
