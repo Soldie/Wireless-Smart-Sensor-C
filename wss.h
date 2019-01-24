@@ -10,6 +10,8 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <Time.h>
+#include <SD.h>
+#include <SDConfigFile.h>
 #include "config.h"
 
 // Defining all possible states for the sensor
@@ -56,6 +58,19 @@ String formattedDate;
 String dayStamp;
 String timeStamp; 
 
+//// SD shield Chip Select pin
+//const int pinSelectSD = 8; 
+//
+//// The filename of the configuration file on the SD card
+//const char CONFIG_FILE[] = "file.cfg";
+// Variables that will be read
+//boolean didReadConfig;
+//char *SSID;
+//char *PASS;
+//int INTERVAL;
+//int FS;
+
+
 /*
  * Standard setup function
  */
@@ -95,5 +110,11 @@ void record();
  * Standard loop function
  */
 void loop();
+
+/*
+ * Read configuration in the file.cfg in SD. Returns true 
+ * if successful and false if it failed
+ */
+boolean readConfiguration();
 
 #endif

@@ -11,10 +11,34 @@
 void setup(){
 
   // Initialize Serial Monitor
-  Serial.begin(BAUD_RATE);
+  Serial.begin(115200);
   while (!Serial) {
     ; // wait for serial port to connect
   }
+  
+//  pinMode(pinSelectSD, OUTPUT);
+//
+//  didReadConfig = false;
+//  FS = 0;
+//  INTERVAL = 0;
+//  SSID = "";
+//  PASS = "";  
+//
+//  /**********************DEBUG*******************************/
+//  // Setup the SD card 
+//  Serial.println("Calling SD.begin()...");
+//  if (!SD.begin(pinSelectSD)) {
+//    Serial.println("SD.begin() failed. Check: ");
+//    Serial.println("  card insertion,");
+//    Serial.println("  SD shield I/O pins and chip select,");
+//    Serial.println("  card formatting.");
+//    return;
+//  }
+//  Serial.println("...succeeded.");
+//  /**********************************************************/
+//
+//  // Read our configuration from the SD card file.
+//  didReadConfig = readConfiguration();
 
   // Connecting to WiFi
   Serial.print("Connecting to ");
@@ -54,6 +78,77 @@ void setup(){
   delay(100);
 
 }
+
+
+//boolean readConfiguration() {
+//  /*
+//   * Length of the longest line expected in the config file.
+//   * The larger this number, the more memory is used
+//   * to read the file.
+//   * You probably won't need to change this number.
+//   */
+//  const uint8_t CONFIG_LINE_LENGTH = 127;
+//  
+//  // The open configuration file.
+//  SDConfigFile cfg;
+//  
+//  // Open the configuration file.
+//  if (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
+//    Serial.print("Failed to open configuration file: ");
+//    Serial.println(CONFIG_FILE);
+//    return false;
+//  }
+//  
+//  // Read each setting from the file.
+//  while (cfg.readNextSetting()) {
+//
+//    // Sampling Rate
+//    if (cfg.nameIs("FS")) {
+//      
+//      FS = cfg.getIntValue();
+//      // DEBUG
+//      Serial.print("Read FS: ");
+//      if (doDelay) {
+//        Serial.println("true");
+//      } else {
+//        Serial.println("false");
+//      }
+//      // DEBUG
+//    
+//    // Interval
+//    } else if (cfg.nameIs("INTERVAL")) {
+//      
+//      INTERVAL = cfg.getIntValue();
+//      //DEBUG
+//      Serial.print("Read INTERVAL: ");
+//      Serial.println(waitMs);
+//      //DEBUG
+//  
+//    // Network name
+//    } else if (cfg.nameIs("SSID")) {
+//      
+//      SSID = cfg.copyValue();
+//      //DEBUG
+//      Serial.print("Read SSID: ");
+//      Serial.println(SSID);
+//      //DEBUG
+//
+//    // Network password
+//    } else if (cfg.nameIs("PASS")) {
+//      
+//      PASS = cfg.copyValue();
+//      //DEBUG
+//      Serial.print("Read PASS: ");
+//      Serial.println(PASS);
+//      //DEBUG
+//    }
+//  }
+//  
+//  // clean up
+//  cfg.end();
+//  
+//  return true;
+//}
 
 
 void wait(){
@@ -207,7 +302,8 @@ void record(){
 
 
 void loop(){
-  
+
+  // States
   if (sensor_state == WAIT){
     wait();
   }
