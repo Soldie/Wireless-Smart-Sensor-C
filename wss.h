@@ -12,7 +12,6 @@
 #include <Time.h>
 #include <SD.h>
 #include <SDConfigFile.h>
-#include "config.h"
 
 // Defining all possible states for the sensor
 enum State { WAIT, SYNC, RECORD };
@@ -50,31 +49,49 @@ const int CHIP_SELECT_PIN = 7;
 int status = WL_IDLE_STATUS; 
 
 // Define NTP Client
-WiFiUDP ntpUDP;
+WiFiUDP ntpUDP, udp;
 NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", -14400, 60000);
+
+// Define broadcast address
+IPAddress broadcast(255, 255, 255, 255);
+int port = 4210;
 
 // Variables to save date and time
 String formattedDate;
 String dayStamp;
 String timeStamp; 
 
-//// SD shield Chip Select pin
-//const int pinSelectSD = 8; 
-//
-//// The filename of the configuration file on the SD card
-//const char CONFIG_FILE[] = "file.cfg";
-// Variables that will be read
-//boolean didReadConfig;
-//char *SSID;
-//char *PASS;
-//int INTERVAL;
-//int FS;
+// SD shield Chip Select pin
+const int pinSelectSD = 4; 
 
+// The filename of the configuration file on the SD card
+const char CONFIG_FILE[] = "file.cfg";
+
+//Variables that will be read
+char *SSID;
+char *PASS;
+int INTERVAL;
+int FS;
 
 /*
  * Standard setup function
  */
 void setup();
+
+/*
+ * Starting SD
+ */
+void setupSD();
+
+/*
+ * Starting Wifi
+ */
+void setupWifi();
+
+/*
+ * Starting ADXL355
+ */
+void setupADXL();
 
 /*
  * Perform waiting operation, listening 
@@ -115,6 +132,6 @@ void loop();
  * Read configuration in the file.cfg in SD. Returns true 
  * if successful and false if it failed
  */
-boolean readConfiguration();
+bool readConfiguration();
 
 #endif

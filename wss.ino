@@ -1,7 +1,7 @@
 
 /*
- * Initial code for Wireless Smart Sensors using Arduino MKR 
- * WiFi 1010 plataform and accelerometer ADXL355. For while,
+ * Initial code for Wireless Smart Sensors (SLAVE NODES) using Arduino MKR 
+ * WiFi 1010 plataform and accelerometer ADXL355. For while, we are
  * using NTP to synchronize clocks with a NTP server (probably it will change).
  * 
  */
@@ -10,59 +10,19 @@
 
 void setup(){
 
-  // Initialize Serial Monitor
-  Serial.begin(115200);
-  while (!Serial) {
-    ; // wait for serial port to connect
-  }
-  
-//  pinMode(pinSelectSD, OUTPUT);
-//
-//  didReadConfig = false;
-//  FS = 0;
-//  INTERVAL = 0;
-//  SSID = "";
-//  PASS = "";  
-//
-//  /**********************DEBUG*******************************/
-//  // Setup the SD card 
-//  Serial.println("Calling SD.begin()...");
-//  if (!SD.begin(pinSelectSD)) {
-//    Serial.println("SD.begin() failed. Check: ");
-//    Serial.println("  card insertion,");
-//    Serial.println("  SD shield I/O pins and chip select,");
-//    Serial.println("  card formatting.");
-//    return;
-//  }
-//  Serial.println("...succeeded.");
-//  /**********************************************************/
-//
-//  // Read our configuration from the SD card file.
-//  didReadConfig = readConfiguration();
-
-  // Connecting to WiFi
-  Serial.print("Connecting to ");
-  Serial.println(SSID);
-  
-  status = WiFi.begin(SSID, PASS);
-  
-  while (status != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    
-    status = WiFi.begin(SSID, PASS);
-  }
-
-  /*******************DEBUG*************************/
-  // Print local IP address and start web server
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  /*******************DEBUG*************************/
+  // Initializing all
+  setupSD();
+  setupWifi();
+  setupADXL();
 
   // Initialize a NTPClient to get time
   timeClient.begin();
+
+  // Initialize udp 
+  udp.begin(port);
+}
+
+void setupADXL(){
 
   // Initialize SPI to interact with ADXL355
   SPI.begin();
@@ -76,109 +36,102 @@ void setup(){
 
   // Give the sensor time to set up:
   delay(100);
+}
 
+void setupSD(){
+
+  // Initialize pin and variables for SD 
+  pinMode(pinSelectSD, OUTPUT);
+  FS = 0;
+  INTERVAL = 0;
+  SSID = "";
+  PASS = "";  
+
+  // Setup the SD card 
+  if (!SD.begin(pinSelectSD)) {
+    
+    return;
+  }
+
+  // Read our configuration from the SD card file.
+  readConfiguration();
+}
+
+void setupWifi(){
+  
+  status = WiFi.begin(SSID, PASS);
+  
+  while (status != WL_CONNECTED) {
+    
+    delay(500);
+    status = WiFi.begin(SSID, PASS);
+  }
+}
+
+bool readConfiguration() {
+  /*
+   * Length of the longest line expected in the config file
+   * The larger this number, the more memory is used
+   * to read the file
+   */
+  const uint8_t CONFIG_LINE_LENGTH = 127;
+  
+  // The open configuration file
+  SDConfigFile cfg;
+  
+  // Open the configuration file
+  if (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
+    
+    return false;
+  }
+  
+  // Read each setting from the file
+  while (cfg.readNextSetting()) {
+
+    // Sampling Rate
+    if (cfg.nameIs("FS")) {
+      
+      FS = cfg.getIntValue();
+    
+    // Interval
+    } else if (cfg.nameIs("INTERVAL")) {
+      
+      INTERVAL = cfg.getIntValue();
+   
+    // Network name
+    } else if (cfg.nameIs("SSID")) {
+      
+      SSID = cfg.copyValue();
+   
+    // Network password
+    } else if (cfg.nameIs("PASS")) {
+      
+      PASS = cfg.copyValue();
+    }
+  }
+  
+  cfg.end();
+  
+  return true;
 }
 
 
-//boolean readConfiguration() {
-//  /*
-//   * Length of the longest line expected in the config file.
-//   * The larger this number, the more memory is used
-//   * to read the file.
-//   * You probably won't need to change this number.
-//   */
-//  const uint8_t CONFIG_LINE_LENGTH = 127;
-//  
-//  // The open configuration file.
-//  SDConfigFile cfg;
-//  
-//  // Open the configuration file.
-//  if (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
-//    Serial.print("Failed to open configuration file: ");
-//    Serial.println(CONFIG_FILE);
-//    return false;
-//  }
-//  
-//  // Read each setting from the file.
-//  while (cfg.readNextSetting()) {
-//
-//    // Sampling Rate
-//    if (cfg.nameIs("FS")) {
-//      
-//      FS = cfg.getIntValue();
-//      // DEBUG
-//      Serial.print("Read FS: ");
-//      if (doDelay) {
-//        Serial.println("true");
-//      } else {
-//        Serial.println("false");
-//      }
-//      // DEBUG
-//    
-//    // Interval
-//    } else if (cfg.nameIs("INTERVAL")) {
-//      
-//      INTERVAL = cfg.getIntValue();
-//      //DEBUG
-//      Serial.print("Read INTERVAL: ");
-//      Serial.println(waitMs);
-//      //DEBUG
-//  
-//    // Network name
-//    } else if (cfg.nameIs("SSID")) {
-//      
-//      SSID = cfg.copyValue();
-//      //DEBUG
-//      Serial.print("Read SSID: ");
-//      Serial.println(SSID);
-//      //DEBUG
-//
-//    // Network password
-//    } else if (cfg.nameIs("PASS")) {
-//      
-//      PASS = cfg.copyValue();
-//      //DEBUG
-//      Serial.print("Read PASS: ");
-//      Serial.println(PASS);
-//      //DEBUG
-//    }
-//  }
-//  
-//  // clean up
-//  cfg.end();
-//  
-//  return true;
-//}
-
-
 void wait(){
+
+  int packetSize = udp.parsePacket();
   
   // Listening to serial port
-  while(Serial.available() != 0){
-
-    /*******************DEBUG*************************************************/
-    // The formattedDate comes with the following format:
-    // 2018-05-28T16:00:13Z
-    // We need to extract date and time
-    formattedDate = timeClient.getFormattedDate();
-    Serial.println(formattedDate);
-
-    // Extract date
-    int splitT = formattedDate.indexOf("T");
-    dayStamp = formattedDate.substring(0, splitT);
-    Serial.print("DATE: ");
-    Serial.println(dayStamp);
-    // Extract time
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
-    Serial.print("HOUR: ");
-    Serial.println(timeStamp);
-    delay(1000);
-    /*******************DEBUG*************************************************/
-    
+  while(!packetSize){
+    packetSize = udp.parsePacket();
   }
 
-  String task;
-  task = Serial.readString();
+  // Receiving packet
+  char task[255];
+  int len = udp.read(task, 255);
+  
+  if (len > 0){
+    task[len] = 0;
+  }
 
   // New state depending on the task sent
   if (task[0] == 's'){
@@ -190,26 +143,25 @@ void wait(){
     int hours = (task[2] * 10) + task[3];
     int minutes = (task[5] * 10) + task[6];
 
-    while(hours >= hour() && minutes > minute()){
-      // Wait until reaches the time to start recording
+    formattedDate = timeClient.getFormattedDate();
+    int splitT = formattedDate.indexOf("T");
+    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+    
+    while(hours >= int((timeStamp[0] * 10) + timeStamp[1]) && minutes > int((timeStamp[3] * 10) + timeStamp[4])){
+      ;// Wait until reaches the time to start recording
     }
+    
   }
-  
 }
 
 
 void sync(){
-
-  Serial.print("Synchronizing clocks");
 
   // Synchronizing clocks
   timeClient.forceUpdate();
   
   // Go back to WAIT state
   sensor_state = WAIT;
-
-  Serial.print("Done");
-  
 }
 
 
@@ -292,12 +244,10 @@ void record(){
     // Next data in 100 milliseconds
     delay(100);
     currentMillis = millis();
-  
   }
 
   // Go back to WAIT state
   sensor_state = WAIT;
-  
 }
 
 
@@ -313,5 +263,4 @@ void loop(){
   else if (sensor_state == RECORD){
     record();
   }
-
 }
