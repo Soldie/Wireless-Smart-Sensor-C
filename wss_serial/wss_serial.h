@@ -50,7 +50,7 @@ int status = WL_IDLE_STATUS;
 
 // Define NTP Client
 WiFiUDP ntpUDP, udp;
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", -14400, 60000);
+NTPClient timeClient(ntpUDP, "192.168.1.212", -14400, 60000);
 
 // Define broadcast address
 IPAddress broadcast(255, 255, 255, 255);

@@ -21,6 +21,8 @@ void setup(){
 
   // Initialize udp 
   udp.begin(port);
+
+  Serial.println("Done setting up");
 }
 
 void setupADXL(){
@@ -49,11 +51,10 @@ void setupSD(){
   PASS = "";  
 
   // Setup the SD card 
-  Serial.println("Connecting to SD card");
   while (!SD.begin(pinSelectSD)) {
-    Serial.print(".");
+    delay(500);
   }
-
+  
   // Read our configuration from the SD card file.
   readConfiguration();
   
@@ -71,26 +72,12 @@ void setupSerial(){
 void setupWifi(){
 
   // Connecting to WiFi
-  Serial.print("Connecting to ");
-  Serial.println(SSID);
-  
-  status = WiFi.begin("VTR-2582559", "4wptdnBHjfxz");
+  status = WiFi.begin(SSID, PASS);
   
   while (status != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
-    
-    status = WiFi.begin("VTR-2582559", "4wptdnBHjfxz");
+    status = WiFi.begin(SSID, PASS);
   }
-
-  /*******************DEBUG*************************/
-  // Print local IP address and start web server
-  Serial.println("");
-  Serial.println("WiFi connected.");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-  /*******************DEBUG*************************/
-
 }
 
 bool readConfiguration() {
@@ -106,9 +93,7 @@ bool readConfiguration() {
   
   // Open the configuration file
   while (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
-    Serial.print("Failed to open configuration file: ");
-    Serial.println(CONFIG_FILE);
-    return false;
+    delay(500);
   }
   
   // Read each setting from the file
@@ -145,28 +130,9 @@ void wait(){
   
   int packetSize = udp.parsePacket();
   
-  // Listening to serial port
-  while(!packetSize){
-    packetSize = udp.parsePacket();
-    /*******************DEBUG*************************************************/
-    // The formattedDate comes with the following format:
-    // 2018-05-28T16:00:13Z
-    // We need to extract date and time
-    formattedDate = timeClient.getFormattedDate();
-    Serial.println(formattedDate);
-
-    // Extract date
-    int splitT = formattedDate.indexOf("T");
-    dayStamp = formattedDate.substring(0, splitT);
-    Serial.print("DATE: ");
-    Serial.println(dayStamp);
-    // Extract time
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
-    Serial.print("HOUR: ");
-    Serial.println(timeStamp);
-    delay(1000);
-    /*******************DEBUG*************************************************/
-    
+  // Listening to udp
+  while(!udp.parsePacket()){
+   ;
   }
 
   // Receiving packet
