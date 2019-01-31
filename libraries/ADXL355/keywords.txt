@@ -1,0 +1,14 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+ADXL355	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+setup	KEYWORD2
+writeRegister	KEYWORD2
+readRegistry	KEYWORD2
+readMultipleData	KEYWORD2

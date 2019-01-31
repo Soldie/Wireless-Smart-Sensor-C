@@ -1,0 +1,25 @@
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+WirelessSmartSensor	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+setupSerial	KEYWORD2
+
+setupSD	KEYWORD2
+
+setupWifi	KEYWORD2
+
+setupADXL	KEYWORD2
+
+setupAll	KEYWORD2
+
+sync	KEYWORD2
+
+record	KEYWORD2
+
+wait	KEYWORD2
