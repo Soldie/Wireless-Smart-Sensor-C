@@ -26,7 +26,7 @@ void WirelessSmartSensor::setupSD(){
 
   // Setup the SD card 
   while (!SD.begin(pinSelectSD)) {
-    delay(500);
+    ;
   }
   
   // Read our configuration from the SD card file.
@@ -37,7 +37,7 @@ void WirelessSmartSensor::setupSD(){
   
   // Open the configuration file
   while (!cfg.begin(CONFIG_FILE, CONFIG_LINE_LENGTH)) {
-    delay(500);
+    ;
   }
   
   // Read each setting from the file
@@ -72,7 +72,7 @@ void WirelessSmartSensor::setupSD(){
 void WirelessSmartSensor::setupSerial(){
 
   // Initialize Serial Monitor
-  Serial.begin(115200);
+  Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect
   }
@@ -105,5 +105,11 @@ void WirelessSmartSensor::record(){
 void WirelessSmartSensor::wait(){
 
   /* Define your own way for the sensor to wait */
+
+}
+
+void WirelessSmartSensor::sendDataBackHome(){
+
+  /* Define your own way to send data back home */
 
 }

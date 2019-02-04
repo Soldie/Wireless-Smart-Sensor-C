@@ -14,9 +14,27 @@ void ADXL355::setupADXL(){
 
   //Configure ADXL355:
   writeRegister(RANGE, RANGE_2G); 
-  writeRegister(POWER_CTL, MEASURE_MODE); 
+  writeRegister(POWER_CTL, STAND_BY_MODE); 
 
   // Give the sensor time to set up:
+  delay(100);
+}
+
+void ADXL355::resetDevice() {
+
+  writeRegister(RESET_REG, RESET);
+  delay(100);
+}
+
+void ADXL355::activateStandByMode() {
+
+  writeRegister(POWER_CTL, STAND_BY_MODE); 
+  delay(100);
+}
+
+void ADXL355::activateMeasurementMode() {
+
+  writeRegister(POWER_CTL, MEASURE_MODE); 
   delay(100);
 }
 

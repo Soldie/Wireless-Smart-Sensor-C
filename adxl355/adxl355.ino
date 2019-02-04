@@ -47,7 +47,7 @@ void setup() {
   writeRegister(POWER_CTL, MEASURE_MODE); // Enable measure mode
 
   // Give the sensor time to set up:
-  delay(10000);
+  delay(1000);
 }
 
 void loop() {
@@ -88,7 +88,7 @@ void loop() {
   Serial.print("\n");
 
   // Next data in 100 milliseconds
-  delay(100);
+  delay(5);
 }
 
 /* 

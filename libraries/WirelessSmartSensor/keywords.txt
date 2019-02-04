@@ -23,3 +23,5 @@ sync	KEYWORD2
 record	KEYWORD2
 
 wait	KEYWORD2
+
+sendDataBackHome	KEYWORD2

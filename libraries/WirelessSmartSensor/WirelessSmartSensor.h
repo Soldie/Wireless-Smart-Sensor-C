@@ -21,23 +21,11 @@ class WirelessSmartSensor{
 	// Initial state of the sensor
 	State sensor_state = WAIT;
 
-	// Pins used for the connection with the sensor
-	const int CHIP_SELECT_PIN = 7;
-
-	// the WiFi radio's status
-	int status = WL_IDLE_STATUS; 
-
-	// SD shield Chip Select pin
-	const int pinSelectSD = 4; 
-
 	// The filename of the configuration file on the SD card
 	char *CONFIG_FILE;
-
-	//Variables that will be read
-	char *SSID;
-	char *PASS;
+	
+	// Interval to keep recording 
 	int INTERVAL;
-	int FS;
 
 	/*
 	 * Perform synchronazing operation
@@ -59,7 +47,26 @@ class WirelessSmartSensor{
 	 */
 	void setupAll();
 
+	/*
+	 * Protocol to send data back home
+	 */
+	void sendDataBackHome();
+
   private:
+	// Pins used for the connection with the sensor
+	const int CHIP_SELECT_PIN = 7;
+
+	// the WiFi radio's status
+	int status = WL_IDLE_STATUS; 
+
+	// SD shield Chip Select pin
+	const int pinSelectSD = 4; 
+
+	//Variables that will be read
+	char *SSID;
+	char *PASS;
+	int FS;
+
 	/*
 	 * Starting serial connection
 	 */

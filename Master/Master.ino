@@ -28,10 +28,13 @@ void setup(){
   // Start the telnet server:
   server.begin();
 
-  Serial.println("Done setting up");
 }
 
 void Master::wait(){
+
+  if (data == 1){
+    //wss.sendDataBackHome();
+  }
   
   WiFiClient client = server.available();
   
@@ -70,7 +73,7 @@ void Master::wait(){
   // Sync  
   if (buf[0] == 's'){
     wss.sensor_state = wss.SYNC;
-    Serial.println("Synchronizing all sensors via NTP.");    
+    server.write("Synchronizing all sensors via NTP.\n");    
    
     // Tell others to sync
     udp.beginPacket(broadcast, port);
@@ -80,7 +83,7 @@ void Master::wait(){
   // Record
   else if (buf[0] == 'r'){
     wss.sensor_state = wss.RECORD;
-    Serial.println("Start recording at specified time.");
+    server.write("Start recording at specified time.\n");
 
     // Tell others to record at specified time
     udp.beginPacket(broadcast, port);
@@ -108,13 +111,10 @@ void Master::record(){
 
   unsigned long previousMillis = millis();
   unsigned long currentMillis = previousMillis;
-  File outputFile = SD.open("output.txt", FILE_WRITE);
 
-  // Waiting for the file to be created
-  while (!outputFile){
-    ;
-  }
-  
+  adxl.resetDevice();
+  adxl.activateMeasurementMode();
+
   // Run during time interval 
   while ((currentMillis - previousMillis) < INTERVAL){ 
 
@@ -154,27 +154,53 @@ void Master::record(){
     Serial.print(zdata);
     Serial.print("\n");
 
-    // Next data in 100 milliseconds
-    delay(100);
+    // Next data in 5 milliseconds
+    delay(5);
     currentMillis = millis();
   
   }
  
-  outputFile.close();
   wss.sensor_state = wss.WAIT;
-  
-  Serial.println("Done recording");
+  data = 1;
+
+  adxl.activateStandByMode();
+  server.write("Done recording data from sensor. \n");
 }
 
 void Master::sync(){
   
-  Serial.println("Synchronizing clocks");
-
+  String formattedDate, timeStamp;
+  int splitT;
+  char buf[10];
+  
   // Synchronizing clocks
   timeClient.forceUpdate();
-  
   wss.sensor_state = wss.WAIT;
-  Serial.println("Synchronization is over");
+
+  formattedDate = timeClient.getFormattedDate();
+  splitT = formattedDate.indexOf("T");
+  timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+  timeStamp.toCharArray(buf,10);
+  
+  server.write("Time: ");
+  server.write(buf);
+  server.write("\n");
+
+}
+
+void Master::sendDataBackHome(){
+
+  // Open the file for reading
+  outputFile = SD.open("output.txt");
+  
+  // Read from the file until there's nothing else in it
+  while (outputFile.available()) {
+    Serial.write(outputFile.read());
+  }
+    
+  outputFile.close();
+  data = 0;
+  
 }
 
 void loop(){
@@ -187,7 +213,9 @@ void loop(){
     wss.sync();
   }
   else if (wss.sensor_state == wss.RECORD){
+    //outputFile = SD.open("output.txt", FILE_WRITE);
     wss.record();
+    //outputFile.close();
   }
 
 }

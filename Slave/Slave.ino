@@ -22,38 +22,22 @@ void setup(){
   // Initialize udp 
   udp.begin(port);
 
-  Serial.println("Done setting up");
+  // Start the telnet server:
+  server.begin();
+  
 }
 
 void Slave::wait(){
   
   int packetSize = udp.parsePacket();
-  
-  // Variables to save date and time
-  String formattedDate;
-  String dayStamp;
-  String timeStamp; 
+
+  if (data == 1){
+    //wss.sendDataBackHome();
+  }
   
   // Listening to udp
   while(!udp.parsePacket()){
-    /*******************DEBUG*************************************************/
-    // The formattedDate comes with the following format:
-    // 2018-05-28T16:00:13Z
-    // We need to extract date and time
-    formattedDate = timeClient.getFormattedDate();
-    Serial.println(formattedDate);
-
-     // Extract date
-    int splitT = formattedDate.indexOf("T");
-    dayStamp = formattedDate.substring(0, splitT);
-    Serial.print("DATE: ");
-    Serial.println(dayStamp);
-    // Extract time
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
-    Serial.print("HOUR: ");
-    Serial.println(timeStamp);
-    delay(1000);
-    /*******************DEBUG*************************************************/
+    ;
   }
 
   // Receiving packet
@@ -74,9 +58,9 @@ void Slave::wait(){
     int hours = (task[2] * 10) + task[3];
     int minutes = (task[5] * 10) + task[6];
 
-    formattedDate = timeClient.getFormattedDate();
+    String formattedDate = timeClient.getFormattedDate();
     int splitT = formattedDate.indexOf("T");
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+    String timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
     
     while(hours >= int((timeStamp[0] * 10) + timeStamp[1]) && minutes > int((timeStamp[3] * 10) + timeStamp[4])){
       // Wait until reaches the time to start recording
@@ -92,13 +76,10 @@ void Slave::record(){
 
   unsigned long previousMillis = millis();
   unsigned long currentMillis = previousMillis;
-  File outputFile = SD.open("output.txt", FILE_WRITE);
 
-  // Waiting for the file to be created
-  while (!outputFile){
-    ;
-  }
-  
+  adxl.resetDevice();
+  adxl.activateMeasurementMode();
+
   // Run during time interval 
   while ((currentMillis - previousMillis) < INTERVAL){ 
 
@@ -138,27 +119,40 @@ void Slave::record(){
     Serial.print(zdata);
     Serial.print("\n");
 
-    // Next data in 100 milliseconds
-    delay(100);
+    // Next data in 5 milliseconds
+    delay(5);
     currentMillis = millis();
   
   }
  
-  outputFile.close();
   wss.sensor_state = wss.WAIT;
+  data = 1;
 
-  Serial.println("Done recording");
+  adxl.activateStandByMode();
+  
 }
 
 void Slave::sync(){
   
-  Serial.println("Synchronizing clocks");
-
   // Synchronizing clocks
   timeClient.forceUpdate();
-  
   wss.sensor_state = wss.WAIT;
-  Serial.println("Synchronization is over");
+
+}
+
+void Slave::sendDataBackHome(){
+
+  // Open the file for reading
+  outputFile = SD.open("output.txt");
+  
+  // Read from the file until there's nothing else in it
+  while (outputFile.available()) {
+    Serial.write(outputFile.read());
+  }
+    
+  outputFile.close();
+  data = 0;
+  
 }
 
 void loop(){
@@ -171,7 +165,9 @@ void loop(){
     wss.sync();
   }
   else if (wss.sensor_state == wss.RECORD){
+    outputFile = SD.open("output.txt", FILE_WRITE);
     wss.record();
+    outputFile.close();
   }
 
 }
