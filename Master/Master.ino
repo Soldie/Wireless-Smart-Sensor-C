@@ -32,11 +32,7 @@ void setup(){
 
 void Master::wait(){
 
-  if (data == 1){
-    //wss.sendDataBackHome();
-  }
-  
-  WiFiClient client = server.available();
+  client = server.available();
   
   // Variables to save date and time
   String formattedDate;
@@ -104,55 +100,50 @@ void Master::wait(){
       timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
     }
   }
+  // Temperature info
+  else if (buf[0] == 't'){
+    wss.sensor_state = wss.TEMP;
+    
+    server.write("Temperature reading.\n");
+  }
+  // Self Diagnosis
+  else if (buf[0] == 'd'){
+    
+  }
+  // Retrieve data back home
+  else if (buf[0] == 'h'){
+    wss.sensor_state = wss.HOME;
+
+    server.write("Sending data back home.");
+  }
 
 }
 
 void Master::record(){
 
+  int *xdata, *ydata, *zdata;
+
   unsigned long previousMillis = millis();
   unsigned long currentMillis = previousMillis;
 
   adxl.resetDevice();
-  adxl.activateMeasurementMode();
 
   // Run during time interval 
   while ((currentMillis - previousMillis) < INTERVAL){ 
 
-    int axisAddresses[] = {adxl.XDATA1, adxl.XDATA2, adxl.XDATA3, adxl.YDATA1, adxl.YDATA2, adxl.YDATA3, adxl.ZDATA1, adxl.ZDATA2, adxl.ZDATA3};
-    int axisMeasures[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    int dataSize = 9;
-
-    // Read accelerometer data
-    adxl.readMultipleData(axisAddresses, dataSize, axisMeasures);
-
-    // Split data
-    int xdata = (axisMeasures[0] >> 4) + (axisMeasures[1] << 4) + (axisMeasures[2] << 12);
-    int ydata = (axisMeasures[3] >> 4) + (axisMeasures[4] << 4) + (axisMeasures[5] << 12);
-    int zdata = (axisMeasures[6] >> 4) + (axisMeasures[7] << 4) + (axisMeasures[8] << 12);
-  
-    // Apply two complement
-    if (xdata >= 0x80000) {
-      xdata = ~xdata + 1;
-    }
-    if (ydata >= 0x80000) {
-      ydata = ~ydata + 1;
-    }
-    if (zdata >= 0x80000) {
-      zdata = ~zdata + 1;
-    }
+    adxl.getAxis(xdata,ydata,zdata);
 
     // Print axis
-    //Serial.print("X=");
-    Serial.print(xdata);
-    Serial.print("\t");
+    outputFile.print(*xdata);
+    outputFile.print("\t");
   
     //Serial.print("Y=");
-    Serial.print(ydata);
-    Serial.print("\t");
+    outputFile.print(*ydata);
+    outputFile.print("\t");
 
     //Serial.print("Z=");
-    Serial.print(zdata);
-    Serial.print("\n");
+    outputFile.print(*zdata);
+    outputFile.print("\n");
 
     // Next data in 5 milliseconds
     delay(5);
@@ -161,10 +152,25 @@ void Master::record(){
   }
  
   wss.sensor_state = wss.WAIT;
-  data = 1;
-
-  adxl.activateStandByMode();
+  
+  recordIndex = recordIndex + 1;
+  outputFileName = "record";
+  outputFileName = outputFileName + String(recordIndex);
+  
   server.write("Done recording data from sensor. \n");
+}
+
+void Master::temperature(){
+
+  // Temperature reading
+  float temperature = adxl.readTemperature();
+
+  // Sending it to computer's terminal
+  server.write("Temperature: ");
+  server.print(temperature,1);
+  server.write("\n");
+
+  wss.sensor_state = wss.WAIT;
 }
 
 void Master::sync(){
@@ -190,17 +196,47 @@ void Master::sync(){
 
 void Master::sendDataBackHome(){
 
+  server.write("Please, insert the name of the file.\n");
+  
+  String fileName = "";
+  char aux = 'a';
+
+  // Wait for the file name until <ENTER>
+  while(aux != '\n') {
+    
+    // Receiving file name from the client
+    if (client.available() > 0 ){
+      
+      aux = client.read();
+      fileName = fileName + aux;
+    }
+    // Cleaning input
+    else{
+    
+      fileName = "";      
+    }
+  }
+
   // Open the file for reading
-  outputFile = SD.open("output.txt");
+  outputFile = SD.open(fileName);
+
+  if (!outputFile){
+    server.write("No file found.\n");
+    return;
+  }
+  else{
+    server.write("File found.\n");
+  }
   
   // Read from the file until there's nothing else in it
   while (outputFile.available()) {
-    Serial.write(outputFile.read());
+    server.write(outputFile.read());
   }
     
   outputFile.close();
-  data = 0;
-  
+  wss.sensor_state = wss.WAIT;
+
+  server.write("Done sending data back home.\n");
 }
 
 void loop(){
@@ -213,9 +249,18 @@ void loop(){
     wss.sync();
   }
   else if (wss.sensor_state == wss.RECORD){
-    //outputFile = SD.open("output.txt", FILE_WRITE);
+    outputFile = SD.open(outputFileName, FILE_WRITE);
     wss.record();
-    //outputFile.close();
+    outputFile.close();
+  }
+  else if (wss.sensor_state == wss.TEMP){
+    wss.temperature();
+  }
+  else if (wss.sensor_state == wss.DIAG){
+    
+  }
+  else if (wss.sensor_state == wss.HOME){
+    wss.sendDataBackHome();
   }
 
 }

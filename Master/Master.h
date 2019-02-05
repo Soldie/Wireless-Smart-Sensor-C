@@ -10,12 +10,14 @@
 
 // To connect via Telnet
 WiFiServer server(23);
-
-// Flag if there is data to send back home
-int data = 0;
+WiFiClient client;
 
 // File to save data from adxl355
 File outputFile;
+String outputFileName = "record1";
+
+// Record number
+int recordIndex = 1;
 
 // Define NTP Client
 WiFiUDP ntpUDP, udp;
@@ -33,6 +35,8 @@ class Master: public WirelessSmartSensor {
      void record();
      void wait();
      void sync();
+     void temperature();
+     void diagnosis();
      void sendDataBackHome();
 
 };

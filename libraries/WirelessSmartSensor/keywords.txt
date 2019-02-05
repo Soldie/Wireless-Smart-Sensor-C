@@ -25,3 +25,7 @@ record	KEYWORD2
 wait	KEYWORD2
 
 sendDataBackHome	KEYWORD2
+
+diagnosis	KEYWORD2
+
+temperature	KEYWORD2

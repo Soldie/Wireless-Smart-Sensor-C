@@ -16,7 +16,7 @@
 class WirelessSmartSensor{
   public:
   	// Defining all possible states for the sensor
-	enum State { WAIT, SYNC, RECORD };
+	enum State { WAIT, SYNC, RECORD, TEMP, DIAG, HOME };
 
 	// Initial state of the sensor
 	State sensor_state = WAIT;
@@ -41,6 +41,16 @@ class WirelessSmartSensor{
 	 * Perform the wating operation, listening 
 	 */
 	void wait();
+
+	/*
+	 * Perform the self test operation 
+	 */
+	void diagnosis();
+
+	/*
+	 * Perform the reading of temperature 
+	 */
+	void temperature();
 
 	/*
 	 * Setup Wifi, SD and serial

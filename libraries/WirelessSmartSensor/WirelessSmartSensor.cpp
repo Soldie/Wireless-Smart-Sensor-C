@@ -113,3 +113,10 @@ void WirelessSmartSensor::sendDataBackHome(){
   /* Define your own way to send data back home */
 
 }
+
+void WirelessSmartSensor::diagnosis(){
+
+}
+
+void WirelessSmartSensor::temperature(){
+}

@@ -29,7 +29,7 @@ const int RANGE_4G = 0x02;
 const int RANGE_8G = 0x03;
 const int MEASURE_MODE = 0x06; // Only accelerometer
 const int ST1 = 0x01;
-const int ST2 = 0x03;
+const int ST2 = 0x02;
 const int NORMAL_MODE = 0x00;
 
 // Operations
@@ -38,8 +38,6 @@ const int WRITE_BYTE = 0x00;
 
 // Pins used for the connection with the sensor
 const int CHIP_SELECT_PIN = 7;
-
-int count = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -51,12 +49,19 @@ void setup() {
   //Configure ADXL355:
   writeRegister(RANGE, RANGE_2G); // 2G
   writeRegister(POWER_CTL, MEASURE_MODE); // Enable measure mode
+  writeRegister(SELF_TEST,ST1);
 
   // Give the sensor time to set up:
-  delay(1000);
+  delay(10000);
+
+  
 }
 
 void loop() {
+
+  writeRegister(SELF_TEST,ST2);
+  delay(10);
+  
   int axisAddresses[] = {XDATA1, XDATA2, XDATA3, YDATA1, YDATA2, YDATA3, ZDATA1, ZDATA2, ZDATA3};
   int axisMeasures[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
   int dataSize = 9;
@@ -93,30 +98,63 @@ void loop() {
   Serial.print(zdata);
   Serial.print("\n");
 
+  writeRegister(SELF_TEST,ST1);
+  delay(10);
+
+  int axisAddresses2[] = {XDATA1, XDATA2, XDATA3, YDATA1, YDATA2, YDATA3, ZDATA1, ZDATA2, ZDATA3};
+  int axisMeasures2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+  dataSize = 9;
+
+  // Read accelerometer data
+  readMultipleData(axisAddresses2, dataSize, axisMeasures2);
+
+  // Split data
+  int xdata_s = (axisMeasures2[0] >> 4) + (axisMeasures2[1] << 4) + (axisMeasures2[2] << 12);
+  int ydata_s = (axisMeasures2[3] >> 4) + (axisMeasures2[4] << 4) + (axisMeasures2[5] << 12);
+  int zdata_s = (axisMeasures2[6] >> 4) + (axisMeasures2[7] << 4) + (axisMeasures2[8] << 12);
+  
+  // Apply two complement
+  if (xdata_s >= 0x80000) {
+    xdata_s = ~xdata_s + 1;
+  }
+  if (ydata_s >= 0x80000) {
+    ydata_s = ~ydata_s + 1;
+  }
+  if (zdata_s >= 0x80000) {
+    zdata_s = ~zdata_s + 1;
+  }
+
+  // Print axis
+  Serial.print("X=");
+  Serial.print(xdata_s);
+  Serial.print("\t");
+  
+  Serial.print("Y=");
+  Serial.print(ydata_s);
+  Serial.print("\t");
+
+  Serial.print("Z=");
+  Serial.print(zdata_s);
+  Serial.print("\n");
+
   // Next data in 100 milliseconds
-  delay(100);
+  delay(5);
 
-  if (count == 100){
-    writeRegister(SELF_TEST, ST1);
-    delay(3000); 
-  }
+  writeRegister(SELF_TEST,NORMAL_MODE);
 
-  if (count == 200){
-    writeRegister(SELF_TEST, ST2);
-    delay(3000);   
-  }
+  Serial.print("Xfinal=");
+  Serial.print(xdata-xdata_s);
+  Serial.print("\t");
 
-  if (count == 300){
-    writeRegister(SELF_TEST, ST1);
-    delay(3000); 
-  }
+  Serial.print("Yfinal=");
+  Serial.print(ydata-ydata_s);
+  Serial.print("\t");
 
-  if(count == 400){
-    writeRegister(SELF_TEST, NORMAL_MODE);
-    delay(3000); 
-  }
-
-  count = count + 1;
+  Serial.print("Zfinal=");
+  Serial.print(zdata-zdata_s);
+  Serial.print("\n");
+  
+  delay(10000);  
 }
 
 /* 

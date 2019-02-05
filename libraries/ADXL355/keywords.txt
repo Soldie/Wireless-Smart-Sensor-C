@@ -15,3 +15,6 @@ readMultipleData	KEYWORD2
 activateStandByMode	KEYWORD2
 activateMeasurementMode	KEYWORD2
 resetDevice	KEYWORD2
+activateSelfTestMode	KEYWORD2
+readTemperature	KEYWORD2
+getAxis	KEYWORD2
