@@ -32,20 +32,16 @@ void setup(){
 
 void Master::wait(){
 
-  client = server.available();
-  
-  // Variables to save date and time
-  String formattedDate;
-  String dayStamp;
   String timeStamp; 
+  String task = "";
+  char aux = 'a', buf[8];
+  
+  client = server.available();
   
   // Wait for a Telnet client to connect
   while(!client){
     client = server.available();
   }
-
-  String task = "";
-  char aux = 'a';
 
   // Wait for the task until <ENTER>
   while(aux != '\n') {
@@ -63,12 +59,11 @@ void Master::wait(){
     }
   }
   
-  char buf[8];
   task.toCharArray(buf,8);
 
   // Sync  
   if (buf[0] == 's'){
-    wss.sensor_state = wss.SYNC;
+    wss.setState(wss.SYNC);
     server.write("Synchronizing all sensors via NTP.\n");    
    
     // Tell others to sync
@@ -78,7 +73,7 @@ void Master::wait(){
   }
   // Record
   else if (buf[0] == 'r'){
-    wss.sensor_state = wss.RECORD;
+    wss.setState(wss.RECORD);
     server.write("Start recording at specified time.\n");
 
     // Tell others to record at specified time
@@ -89,75 +84,103 @@ void Master::wait(){
     int hours = (task[2] * 10) + task[3];
     int minutes = (task[5] * 10) + task[6];
 
-    formattedDate = timeClient.getFormattedDate();
-    int splitT = formattedDate.indexOf("T");
-    timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+    timeStamp = wss.getTime();
     
     while(hours >= int((timeStamp[0] * 10) + timeStamp[1]) && minutes > int((timeStamp[3] * 10) + timeStamp[4])){
       // Wait until reaches the time to start recording
-      formattedDate = timeClient.getFormattedDate();
-      int splitT = formattedDate.indexOf("T");
-      timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+      timeStamp = wss.getTime();
     }
   }
   // Temperature info
   else if (buf[0] == 't'){
-    wss.sensor_state = wss.TEMP;
-    
+    wss.setState(wss.TEMP);
     server.write("Temperature reading.\n");
+
+    // Tell others to read temperature
+    udp.beginPacket(broadcast, port);
+    udp.write(buf);
+    udp.endPacket();
   }
   // Self Diagnosis
   else if (buf[0] == 'd'){
     
   }
   // Retrieve data back home
-  else if (buf[0] == 'h'){
-    wss.sensor_state = wss.HOME;
-
+  else if (buf[0] == 'g'){
+    wss.setState(wss.GATHER);
     server.write("Sending data back home.");
+
+    // Tell others to send data back home
+    udp.beginPacket(broadcast, port);
+    udp.write(buf);
+    udp.endPacket();
   }
 
 }
 
 void Master::record(){
 
-  int *xdata, *ydata, *zdata;
+   unsigned long previousMillis;
+  unsigned long currentMillis;
+  int xdata, ydata, zdata;
+  String timeStamp, dateStamp;
+  int samplingInterval = (1/wss.getFS()) * 1000.0;
 
-  unsigned long previousMillis = millis();
-  unsigned long currentMillis = previousMillis;
+  timeStamp = wss.getTime();
+  dateStamp = wss.getDate();
 
+  // Ip 
+  outputFile.print("IP: ");
+  outputFile.print(WiFi.localIP());
+  outputFile.print("\t");
+
+  // Arduino's MAC address
+  wss.printMacAddressWifi(outputFile);
+  outputFile.print("\n");
+
+  // Date stamp
+  outputFile.print(dateStamp);
+  outputFile.print("\t");
+
+  // Time stamp
+  outputFile.print(timeStamp);
+  outputFile.print("\n\n");
+  
   adxl.resetDevice();
 
+  previousMillis = millis();
+  currentMillis = previousMillis;
+
   // Run during time interval 
-  while ((currentMillis - previousMillis) < INTERVAL){ 
+  while ((currentMillis - previousMillis) < getInterval()){ 
 
-    adxl.getAxis(xdata,ydata,zdata);
+    adxl.getAxis(&xdata,&ydata,&zdata);
 
-    // Print axis
-    outputFile.print(*xdata);
-    outputFile.print("\t");
-  
-    //Serial.print("Y=");
-    outputFile.print(*ydata);
+    // X axis
+    outputFile.print(xdata);
     outputFile.print("\t");
 
-    //Serial.print("Z=");
-    outputFile.print(*zdata);
+    // Y axis
+    outputFile.print(ydata);
+    outputFile.print("\t");
+
+    // Z axis
+    outputFile.print(zdata);
     outputFile.print("\n");
 
-    // Next data in 5 milliseconds
-    delay(5);
+    // Sampling frequency
+    delay(samplingInterval);
     currentMillis = millis();
   
   }
  
-  wss.sensor_state = wss.WAIT;
-  
+  wss.setState(wss.WAIT);
+
   recordIndex = recordIndex + 1;
   outputFileName = "record";
   outputFileName = outputFileName + String(recordIndex);
-  
-  server.write("Done recording data from sensor. \n");
+
+  server.write("Done recording data from sensor.\n");
 }
 
 void Master::temperature(){
@@ -170,22 +193,19 @@ void Master::temperature(){
   server.print(temperature,1);
   server.write("\n");
 
-  wss.sensor_state = wss.WAIT;
+  wss.setState(wss.WAIT);
 }
 
 void Master::sync(){
   
-  String formattedDate, timeStamp;
-  int splitT;
+  String timeStamp;
   char buf[10];
   
   // Synchronizing clocks
   timeClient.forceUpdate();
-  wss.sensor_state = wss.WAIT;
-
-  formattedDate = timeClient.getFormattedDate();
-  splitT = formattedDate.indexOf("T");
-  timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+  wss.setState(wss.WAIT);
+  
+  timeStamp = wss.getTime();
   timeStamp.toCharArray(buf,10);
   
   server.write("Time: ");
@@ -208,7 +228,10 @@ void Master::sendDataBackHome(){
     if (client.available() > 0 ){
       
       aux = client.read();
-      fileName = fileName + aux;
+      
+      if (aux != '\n'){
+        fileName = fileName + aux;
+      }  
     }
     // Cleaning input
     else{
@@ -217,8 +240,16 @@ void Master::sendDataBackHome(){
     }
   }
 
+  char buf[15];
+  fileName.toCharArray(buf,15);
+
+  // Tell others the name of the file to be read
+  udp.beginPacket(broadcast, port);
+  udp.write(buf);
+  udp.endPacket();
+
   // Open the file for reading
-  outputFile = SD.open(fileName);
+  outputFile = SD.open(fileName, FILE_READ);
 
   if (!outputFile){
     server.write("No file found.\n");
@@ -227,39 +258,65 @@ void Master::sendDataBackHome(){
   else{
     server.write("File found.\n");
   }
-  
+
   // Read from the file until there's nothing else in it
   while (outputFile.available()) {
     server.write(outputFile.read());
   }
     
   outputFile.close();
-  wss.sensor_state = wss.WAIT;
+  wss.setState(wss.WAIT);
 
   server.write("Done sending data back home.\n");
+}
+
+String Master::getTime(){
+
+  String formattedDate, timeStamp;
+  int splitT;
+
+  formattedDate = timeClient.getFormattedDate();
+  splitT = formattedDate.indexOf("T");
+  timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
+  
+  return timeStamp;
+
+}
+
+String Master::getDate(){
+
+  String formattedDate, dayStamp;
+  int splitT;
+
+  formattedDate = timeClient.getFormattedDate();
+  splitT = formattedDate.indexOf("T");
+  dayStamp = formattedDate.substring(0, splitT);
+  
+  return dayStamp;
+
 }
 
 void loop(){
 
   // States
-  if (wss.sensor_state == wss.WAIT){
+  if (wss.getState() == wss.WAIT){
     wss.wait();
   }
-  else if (wss.sensor_state == wss.SYNC){
+  else if (wss.getState() == wss.SYNC){
     wss.sync();
   }
-  else if (wss.sensor_state == wss.RECORD){
+  else if (wss.getState() == wss.RECORD){
     outputFile = SD.open(outputFileName, FILE_WRITE);
     wss.record();
     outputFile.close();
   }
-  else if (wss.sensor_state == wss.TEMP){
+  else if (wss.getState() == wss.TEMP){
     wss.temperature();
   }
-  else if (wss.sensor_state == wss.DIAG){
+  else if (wss.getState() == wss.DIAG){
     
   }
-  else if (wss.sensor_state == wss.HOME){
+  else if (wss.getState() == wss.GATHER){
     wss.sendDataBackHome();
   }
 

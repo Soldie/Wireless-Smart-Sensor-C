@@ -1,5 +1,6 @@
 /*
- * ADXL355.cpp contains functions to use the sensor ADXL 355
+ * Library for accelerometer ADXL355 pmdz
+ *
  */
 
 #include <ADXL355.h>
@@ -20,6 +21,8 @@ void ADXL355::setupADXL(){
   delay(100);
 
 }
+
+
 
 void ADXL355::getAxis(int *x, int *y, int *z){
 
@@ -51,6 +54,8 @@ void ADXL355::getAxis(int *x, int *y, int *z){
     *z = zdata;
 }
 
+
+
 float ADXL355::readTemperature() {
 
 	unsigned int t1,t2;
@@ -67,6 +72,8 @@ float ADXL355::readTemperature() {
 	return temperature;
 }
 
+
+
 void ADXL355::activateSelfTestMode() {
 
   writeRegister(SELF_TEST, ST1);
@@ -75,6 +82,8 @@ void ADXL355::activateSelfTestMode() {
   writeRegister(SELF_TEST, ST2);
   delay(100);
 }
+
+
 
 void ADXL355::resetDevice() {
 
@@ -85,17 +94,23 @@ void ADXL355::resetDevice() {
   delay(100);
 }
 
+
+
 void ADXL355::activateStandByMode() {
 
   writeRegister(POWER_CTL, STAND_BY_MODE); 
   delay(100);
 }
 
+
+
 void ADXL355::activateMeasurementMode() {
 
   writeRegister(POWER_CTL, MEASURE_MODE); 
   delay(100);
 }
+
+
 
 void ADXL355::writeRegister(byte thisRegister, byte thisValue) {
   byte dataToSend = (thisRegister << 1) | WRITE_BYTE;
@@ -104,6 +119,8 @@ void ADXL355::writeRegister(byte thisRegister, byte thisValue) {
   SPI.transfer(thisValue);
   digitalWrite(CHIP_SELECT_PIN, HIGH);
 }
+
+
 
 unsigned int ADXL355::readRegistry(byte thisRegister) {
   unsigned int result = 0;
@@ -115,6 +132,8 @@ unsigned int ADXL355::readRegistry(byte thisRegister) {
   digitalWrite(CHIP_SELECT_PIN, HIGH);
   return result;
 }
+
+
 
 void ADXL355::readMultipleData(int *addresses, int dataSize, int *readedData) {
   digitalWrite(CHIP_SELECT_PIN, LOW);

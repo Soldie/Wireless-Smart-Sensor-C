@@ -39,6 +39,10 @@ class Master: public WirelessSmartSensor {
      void diagnosis();
      void sendDataBackHome();
 
+  private:
+     String getTime();
+     String getDate();
+
 };
 
 

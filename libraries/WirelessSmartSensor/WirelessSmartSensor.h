@@ -1,5 +1,6 @@
 /*
  * Header file for WirlessSmartSensor.cpp
+ *
  */
 
 #ifndef WirelessSmartSensor_h
@@ -16,16 +17,22 @@
 class WirelessSmartSensor{
   public:
   	// Defining all possible states for the sensor
-	enum State { WAIT, SYNC, RECORD, TEMP, DIAG, HOME };
+	enum State { WAIT, SYNC, RECORD, TEMP, DIAG, GATHER };
 
-	// Initial state of the sensor
-	State sensor_state = WAIT;
-
-	// The filename of the configuration file on the SD card
-	char *CONFIG_FILE;
+	/*
+	 * INTERVAL Getter 
+	 */
+	int getInterval();
 	
-	// Interval to keep recording 
-	int INTERVAL;
+	/*
+	 * Sensor's state getter
+	 */
+	State getState();
+
+	/*
+	 * Sensor's state setter
+	 */
+	void setState(State s);
 
 	/*
 	 * Perform synchronazing operation
@@ -62,7 +69,36 @@ class WirelessSmartSensor{
 	 */
 	void sendDataBackHome();
 
+	/*
+	 * Sampling frequency getter
+	 */
+	int getFS();
+
+	/*
+	 *	Get time from sensor
+	 */
+	String getTime();
+
+	/*
+	 *	Get date from sensor
+	 */
+	String getDate();
+
+	/*
+	 * Gets MAC address of WiFi shield
+	 */
+	void printMacAddressWifi(File file);
+
   private:
+	// Initial state of the sensor
+	State sensor_state = WAIT;
+
+	// Interval to keep recording 
+	int INTERVAL;
+
+	// The filename of the configuration file on the SD card
+	char *CONFIG_FILE;
+
 	// Pins used for the connection with the sensor
 	const int CHIP_SELECT_PIN = 7;
 

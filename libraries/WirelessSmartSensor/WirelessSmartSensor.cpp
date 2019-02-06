@@ -1,5 +1,5 @@
 /*
- * WirelessSmartSensor.cpp represents a sketch for Wireless Smart Sensors
+ * Library for Wireless Smart Sensors using Arduino MKR
  *
  */
 
@@ -11,8 +11,9 @@ void WirelessSmartSensor::setupAll(){
   setupSerial();
   setupSD();
   setupWifi();
-
 }
+
+
 
 void WirelessSmartSensor::setupSD(){
 
@@ -43,7 +44,7 @@ void WirelessSmartSensor::setupSD(){
   // Read each setting from the file
   while (cfg.readNextSetting()) {
 
-    // Sampling Rate
+    // Sampling Frequency
     if (cfg.nameIs("FS")) {
       
       FS = cfg.getIntValue();
@@ -69,6 +70,8 @@ void WirelessSmartSensor::setupSD(){
   
 }
 
+
+
 void WirelessSmartSensor::setupSerial(){
 
   // Initialize Serial Monitor
@@ -78,6 +81,8 @@ void WirelessSmartSensor::setupSerial(){
   }
 
 }
+
+
 
 void WirelessSmartSensor::setupWifi(){
 
@@ -90,11 +95,68 @@ void WirelessSmartSensor::setupWifi(){
 
 }
 
+
+
+int WirelessSmartSensor::getFS(){
+
+  return FS;
+}
+
+
+
+int WirelessSmartSensor::getInterval(){
+
+  return INTERVAL;
+}
+
+
+  
+WirelessSmartSensor::State WirelessSmartSensor::getState(){
+
+  return sensor_state;
+}
+
+
+
+void WirelessSmartSensor::setState(State s){
+
+  sensor_state = s;
+}
+
+
+
+void WirelessSmartSensor::printMacAddressWifi(File file){
+
+  byte mac[6];
+
+  // Getting mac address
+  WiFi.macAddress(mac);
+
+  // Writing it to file
+  file.print("MAC: ");
+  file.print(mac[5],HEX);
+  file.print(":");
+  file.print(mac[4],HEX);
+  file.print(":");
+  file.print(mac[3],HEX);
+  file.print(":");
+  file.print(mac[2],HEX);
+  file.print(":");
+  file.print(mac[1],HEX);
+  file.print(":");
+  file.println(mac[0],HEX);
+
+}
+
+
+
 void WirelessSmartSensor::sync(){
 
   /* Define your own way to synchronize */
   
 }
+
+
 
 void WirelessSmartSensor::record(){
 
@@ -102,11 +164,15 @@ void WirelessSmartSensor::record(){
 
 }
 
+
+
 void WirelessSmartSensor::wait(){
 
   /* Define your own way for the sensor to wait */
 
 }
+
+
 
 void WirelessSmartSensor::sendDataBackHome(){
 
@@ -114,9 +180,25 @@ void WirelessSmartSensor::sendDataBackHome(){
 
 }
 
+
+
 void WirelessSmartSensor::diagnosis(){
 
 }
 
+
+
 void WirelessSmartSensor::temperature(){
+}
+
+
+
+String WirelessSmartSensor::getTime(){
+
+}
+
+
+
+String WirelessSmartSensor::getDate(){
+
 }

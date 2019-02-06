@@ -1,5 +1,6 @@
 /*
  * Header file for ADXL355.cpp
+ *
  */
 
 #ifndef ADXL355_h

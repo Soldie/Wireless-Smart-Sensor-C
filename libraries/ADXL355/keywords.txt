@@ -9,9 +9,6 @@ ADXL355	KEYWORD1
 #######################################
 
 setup	KEYWORD2
-writeRegister	KEYWORD2
-readRegistry	KEYWORD2
-readMultipleData	KEYWORD2
 activateStandByMode	KEYWORD2
 activateMeasurementMode	KEYWORD2
 resetDevice	KEYWORD2

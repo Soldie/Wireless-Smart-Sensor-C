@@ -8,14 +8,6 @@ WirelessSmartSensor	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-setupSerial	KEYWORD2
-
-setupSD	KEYWORD2
-
-setupWifi	KEYWORD2
-
-setupADXL	KEYWORD2
-
 setupAll	KEYWORD2
 
 sync	KEYWORD2
@@ -29,3 +21,17 @@ sendDataBackHome	KEYWORD2
 diagnosis	KEYWORD2
 
 temperature	KEYWORD2
+
+getFS	KEYWORD2
+
+getInterval	KEYWORD2
+
+getState	KEYWORD2
+
+setState	KEYWORD2
+
+getTime	KEYWORD2
+
+getDate	KEYWORD2
+
+printMacAddressWifi	KEYWORD2
