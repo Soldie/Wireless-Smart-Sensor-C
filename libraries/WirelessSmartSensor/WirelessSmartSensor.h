@@ -3,8 +3,7 @@
  *
  */
 
-#ifndef WirelessSmartSensor_h
-#define WirelessSmartSensor_h
+#pragma once
 
 #include <Arduino.h>
 #include <WiFiNINA.h>
@@ -13,6 +12,8 @@
 #include <Time.h>
 #include <SD.h>
 #include <SDConfigFile.h>
+#include <ADXL355.h>
+
 
 class WirelessSmartSensor{
   public:
@@ -89,6 +90,37 @@ class WirelessSmartSensor{
 	 */
 	void printMacAddressWifi(File file);
 
+	/*
+	 * Gets MAC address of WiFi shield
+	 */
+	NTPClient getNTPClient();
+
+	/*
+	 * Gets MAC address of WiFi shield
+	 */
+	bool sendPacketUDP(char * buf);
+
+	/*
+	 * Gets MAC address of WiFi shield
+	 */
+	WiFiClient getTelnetClient();
+
+	/*
+	 * Gets MAC address of WiFi shield
+	 */
+	WiFiServer getTelnetServer();
+
+	/*
+	 * Gets MAC address of WiFi shield
+	 */
+	void setupTelnetServer();
+
+	/*
+	 * Retrieves UDP connection
+	 */ 
+	WiFiUDP getUDPConnection();
+
+
   private:
 	// Initial state of the sensor
 	State sensor_state = WAIT;
@@ -108,10 +140,37 @@ class WirelessSmartSensor{
 	// SD shield Chip Select pin
 	const int pinSelectSD = 4; 
 
-	//Variables that will be read
+	// Variables that will be read
 	char *SSID;
 	char *PASS;
 	int FS;
+
+	// Define NTP client
+	WiFiUDP ntpUDP, udp;
+    NTPClient timeClient;
+
+    // Define UDP port 
+    int port = 4210;
+
+    // To connect via Telnet
+	WiFiServer sv;
+	WiFiClient cl;
+
+	// ADXL355 accelerometer
+    ADXL355 adxl;
+
+    // Record number
+	int recordIndex = 1;
+
+	// Determine the delay to start recording 
+	int miliDelay = 0;
+
+	// Sampling interval used when recording
+	float samplingInterval;
+
+	// File to save data from adxl355
+	File outputFile;
+	String outputFileName = "record1";
 
 	/*
 	 * Starting serial connection
@@ -128,6 +187,14 @@ class WirelessSmartSensor{
 	 */
 	void setupWifi();
 
-};
+	/*
+	 * Starting UDP connection
+	 */
+	void setupUDP();
 
-#endif
+	/*
+	 * Starting NTP client
+	 */
+	void setupNTPClient();
+
+};

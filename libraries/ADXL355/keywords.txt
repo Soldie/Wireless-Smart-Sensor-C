@@ -8,7 +8,7 @@ ADXL355	KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-setup	KEYWORD2
+setupADXL	KEYWORD2
 activateStandByMode	KEYWORD2
 activateMeasurementMode	KEYWORD2
 resetDevice	KEYWORD2

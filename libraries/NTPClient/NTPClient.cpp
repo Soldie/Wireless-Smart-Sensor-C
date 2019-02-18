@@ -21,6 +21,10 @@
 
 #include "NTPClient.h"
 
+NTPClient::NTPClient() {
+
+}
+
 NTPClient::NTPClient(UDP& udp) {
   this->_udp            = &udp;
 }
@@ -113,11 +117,35 @@ bool NTPClient::forceUpdate() {
 
   unsigned long highWord = word(this->_packetBuffer[40], this->_packetBuffer[41]);
   unsigned long lowWord = word(this->_packetBuffer[42], this->_packetBuffer[43]);
+  //
+  unsigned long highFracWord = word(this->_packetBuffer[44], this->_packetBuffer[45]);
+  //
   // combine the four bytes (two words) into a long integer
   // this is NTP time (seconds since Jan 1 1900):
   unsigned long secsSince1900 = highWord << 16 | lowWord;
 
   this->_currentEpoc = secsSince1900 - SEVENZYYEARS;
+  
+  // Getting fraction of seconds from NTP packet
+  unsigned long mask = 0b1000000000000000;
+  unsigned long res = 0b0000000000000000;
+  double fraction = 0.0;
+  int i = 1;
+
+  for (i; i < 17; i++) {
+
+    res = highFracWord & mask;
+
+    if (res != 0){
+      fraction = fraction +  pow (2.0, float(-i));
+    }
+
+    mask = mask >> 1;
+    res = 0b0000000000000000;
+  }
+
+  this->_currentEpocFrac = fraction;
+  this->_lastUpdateFrac = millis();
 
   return true;
 }
@@ -161,7 +189,23 @@ String NTPClient::getFormattedTime(unsigned long secs) {
   unsigned long seconds = rawTime % 60;
   String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
 
-  return hoursStr + ":" + minuteStr + ":" + secondStr;
+  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdateFrac);
+  String milliStr = String(millisec);
+
+  return hoursStr + ":" + minuteStr + ":" + secondStr + ":" + milliStr;
+}
+
+String NTPClient::getMilliSecond(){
+  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdateFrac);
+  String milliStr = String(millisec);
+
+  return milliStr;
+}
+
+unsigned long NTPClient::getMilliSecondL(){
+  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdateFrac);
+
+  return millisec;
 }
 
 // Based on https://github.com/PaulStoffregen/Time/blob/master/Time.cpp

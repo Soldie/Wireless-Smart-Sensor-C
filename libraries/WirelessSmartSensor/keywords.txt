@@ -35,3 +35,15 @@ getTime	KEYWORD2
 getDate	KEYWORD2
 
 printMacAddressWifi	KEYWORD2
+
+getNTPClient	KEYWORD2
+
+sendPacketUDP	KEYWORD2
+
+getTelnetClient	KEYWORD2
+
+getTelnetServer	KEYWORD2
+
+setupTelnetServer	KEYWORD2
+
+getUDPConnection	KEYWORD2

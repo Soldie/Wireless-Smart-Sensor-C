@@ -3,8 +3,7 @@
  *
  */
 
-#ifndef ADXL355_h
-#define ADXL355_h
+#pragma once
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -45,6 +44,7 @@ class ADXL355{
      * Get values of acceleration of each axis 
      */
     void getAxis(int *x, int *y, int *z);
+    
 
   private:
     // Memory register addresses:
@@ -100,4 +100,3 @@ class ADXL355{
 
 };
 
-#endif

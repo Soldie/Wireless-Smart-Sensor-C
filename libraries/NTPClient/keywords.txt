@@ -18,3 +18,5 @@ getMinutes	KEYWORD2
 getSeconds	KEYWORD2
 getFormattedTime	KEYWORD2
 getEpochTime	KEYWORD2
+getMilliSecond	KEYWORD2
+getMilliSecondL	KEYWORD2

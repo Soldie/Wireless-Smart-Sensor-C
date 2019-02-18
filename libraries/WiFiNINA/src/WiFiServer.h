@@ -35,6 +35,7 @@ private:
   uint16_t _port;
   void*     pcb;
 public:
+  WiFiServer();
   WiFiServer(uint16_t);
   WiFiClient available(uint8_t* status = NULL);
   void begin();

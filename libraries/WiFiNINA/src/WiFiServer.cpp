@@ -29,6 +29,11 @@ extern "C" {
 #include "WiFiClient.h"
 #include "WiFiServer.h"
 
+WiFiServer::WiFiServer()
+{
+
+}
+
 WiFiServer::WiFiServer(uint16_t port) :
   _sock(NO_SOCKET_AVAIL)
 {

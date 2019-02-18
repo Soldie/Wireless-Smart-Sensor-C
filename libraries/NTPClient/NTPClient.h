@@ -3,6 +3,7 @@
 #include "Arduino.h"
 
 #include <Udp.h>
+#include <math.h>
 
 #define SEVENZYYEARS 2208988800UL
 #define NTP_PACKET_SIZE 48
@@ -15,14 +16,18 @@ class NTPClient {
     UDP*          _udp;
     bool          _udpSetup       = false;
 
-    const char*   _poolServerName = "pool.ntp.org"; // Default time server
+    const char*   _poolServerName = "192.168.1.212"; // Default time server
     int           _port           = NTP_DEFAULT_LOCAL_PORT;
     int           _timeOffset     = 0;
 
-    unsigned long _updateInterval = 60000;  // In ms
+    unsigned long _updateInterval = 6000000;  // In ms
 
     unsigned long _currentEpoc    = 0;      // In s
     unsigned long _lastUpdate     = 0;      // In ms
+    
+    unsigned long _lastUpdateFrac = 0;	    // In micros
+    double _currentEpocFrac = 0;
+    
 
     byte          _packetBuffer[NTP_PACKET_SIZE];
 
@@ -30,11 +35,22 @@ class NTPClient {
     bool          isValid(byte * ntpPacket);
 
   public:
+    NTPClient();
     NTPClient(UDP& udp);
     NTPClient(UDP& udp, int timeOffset);
     NTPClient(UDP& udp, const char* poolServerName);
     NTPClient(UDP& udp, const char* poolServerName, int timeOffset);
     NTPClient(UDP& udp, const char* poolServerName, int timeOffset, unsigned long updateInterval);
+	
+    /**
+     * Get value for milliseconds as a string
+     */
+    String getMilliSecond();
+    
+    /**
+     * Get value for milliseconds as a unsigned long 
+     */
+    unsigned long getMilliSecondL();
 
     /**
      * Starts the underlying UDP client with the default local port
