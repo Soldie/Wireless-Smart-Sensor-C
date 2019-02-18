@@ -66,7 +66,7 @@ class WirelessSmartSensor{
 	void setupAll();
 
 	/*
-	 * Protocol to send data back home
+	 * Protocol to send data back home from last recording
 	 */
 	void sendDataBackHome();
 
@@ -76,12 +76,12 @@ class WirelessSmartSensor{
 	int getFS();
 
 	/*
-	 *	Get time from sensor
+	 * Get time from sensor
 	 */
 	String getTime();
 
 	/*
-	 *	Get date from sensor
+	 * Get date from sensor
 	 */
 	String getDate();
 

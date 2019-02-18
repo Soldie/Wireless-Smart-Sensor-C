@@ -8,21 +8,17 @@
 
 void WirelessSmartSensor::setupAll(){
 
-  // Initializing Serial, SD and Wifi
+  // Initializing everything
   setupSerial();
-  
   setupSD();
-
   setupWifi();
-  
   setupNTPClient();
-
   setupUDP();
-
   setupTelnetServer();
-
   adxl.setupADXL();
 
+
+  // Obtaining sampling interval from sampling frequency from .cfg
   samplingInterval = ((float)1/(float)getFS()) * 1000.0;
 
 }
@@ -166,7 +162,7 @@ void WirelessSmartSensor::setupSerial(){
   // Initialize Serial Monitor
   Serial.begin(9600);
   while (!Serial) {
-    ; // wait for serial port to connect
+    ;
   }
 
 }
@@ -269,31 +265,27 @@ void WirelessSmartSensor::record(){
 
   unsigned long previousMillis, currentMillis, t = 0, ts, cron, it = getInterval();
   String timeStamp, dateStamp;
-  int xdata = 0, ydata = 0, zdata = 0, count = 0, xaxis = 0;
+  int xdata = 0, ydata = 0, zdata = 0, count = 0;
   char buffer[10000];
  
   buffer[0] = '\0';
 
-  //String timeStamp = timeClient.getMilliSecond();
-  //dateStamp = getDate();
+  // Date and time of recording
+  timeStamp = getTime();
+  dateStamp = getDate();
   
   adxl.resetDevice();
 
   previousMillis = millis();
   currentMillis = previousMillis;
-  outputFile.println(timeClient.getMilliSecond());
     
   // Run during time interval 
   while (t < it){ 
 
     ts = timeClient.getMilliSecondL();
     
-    ts = ts - 1 * (t/2230); 
-    
-    //Serial.println(timeStamp);
     adxl.getAxis(&xdata,&ydata,&zdata);
     sprintf(buffer + strlen(buffer),"%d\t%d\t%d\t%d\n", ts, xdata, ydata, zdata);
-    //outputFile.print(buffer);
     
     count = count + 1;
     
@@ -308,21 +300,16 @@ void WirelessSmartSensor::record(){
     }
 
     // Sampling frequency
-    //delay((int) samplingInterval);
-    //if (t % 3000 == 0){
-    //  delay(3); 
-    //}
-    //else{
-      delayMicroseconds(2000);
-    //}
-
+    delay((int) samplingInterval);
+    
     currentMillis = millis();
     t = currentMillis - previousMillis;
-    xaxis = xaxis + 1;
+  
   }
+
   outputFile.println(timeClient.getMilliSecond());
   
-  // Ip 
+  // IP
   outputFile.print("\nIP: ");
   outputFile.print(WiFi.localIP());
   outputFile.print("\t");
@@ -332,13 +319,11 @@ void WirelessSmartSensor::record(){
   outputFile.print("\n");
 
   // Date stamp
-  //outputFile.print(dateStamp);
+  outputFile.print(dateStamp);
   outputFile.print("\t");
 
   // Time stamp
-//  outputFile.print(timeStamp);
-  outputFile.print(":");
-  //outputFile.print(delta);
+  outputFile.print(timeStamp);
   outputFile.print("\n\n");
  
   setState(WAIT);
@@ -357,39 +342,10 @@ void WirelessSmartSensor::record(){
 
 void WirelessSmartSensor::sendDataBackHome(){
 
-  sv.write("Please, insert the name of the file.\n");
-  
-  String fileName = "";
-  char aux = 'a';
-
-  // Wait for the file name until <ENTER>
-  while(aux != '\n') {
-    
-    // Receiving file name from the client
-    if (cl.available() > 0 ){
-      
-      aux = cl.read();
-      
-      if (aux != '\n'){
-        fileName = fileName + aux;
-      }  
-    }
-    // Cleaning input
-    else{
-    
-      fileName = "";      
-    }
-  }
-
-  char buf[15];
-  fileName.toCharArray(buf,15);
-
-  // Tell others the name of the file to be read
-  sendPacketUDP(buf);
-  
+  String lastRec = "record" + String(recordIndex - 1);
 
   // Open the file for reading
-  outputFile = SD.open(fileName, FILE_READ);
+  outputFile = SD.open(lastRec, FILE_READ);
 
   if (!outputFile){
     sv.write("No file found.\n");
@@ -414,6 +370,8 @@ void WirelessSmartSensor::sendDataBackHome(){
 
 
 void WirelessSmartSensor::diagnosis(){
+
+  /* TODO */
 
 }
 
@@ -446,6 +404,7 @@ String WirelessSmartSensor::getTime(){
   timeStamp = formattedDate.substring(splitT+1, formattedDate.length()-1);
  
   return timeStamp;
+
 }
 
 

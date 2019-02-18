@@ -1,8 +1,6 @@
 
 /*
- * Initial code for Wireless Smart Sensors (SLAVE NODES) using Arduino MKR 
- * WiFi 1010 plataform and accelerometer ADXL355. For while, we are
- * using NTP to synchronize clocks with a NTP server (probably it will change).
+ * Code for Master node. Uses NTP sync and adxl 355.
  * 
  */
 
@@ -117,7 +115,7 @@ void loop(){
     wss.temperature();
   }
   else if (wss.getState() == wss.DIAG){
-    
+    wss.diagnosis();
   }
   else if (wss.getState() == wss.GATHER){
     wss.sendDataBackHome();
