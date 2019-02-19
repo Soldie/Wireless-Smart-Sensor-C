@@ -117,9 +117,8 @@ bool NTPClient::forceUpdate() {
 
   unsigned long highWord = word(this->_packetBuffer[40], this->_packetBuffer[41]);
   unsigned long lowWord = word(this->_packetBuffer[42], this->_packetBuffer[43]);
-  //
   unsigned long highFracWord = word(this->_packetBuffer[44], this->_packetBuffer[45]);
-  //
+  
   // combine the four bytes (two words) into a long integer
   // this is NTP time (seconds since Jan 1 1900):
   unsigned long secsSince1900 = highWord << 16 | lowWord;
@@ -189,23 +188,12 @@ String NTPClient::getFormattedTime(unsigned long secs) {
   unsigned long seconds = rawTime % 60;
   String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
 
-  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdateFrac);
-  String milliStr = String(millisec);
+  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdate);
+  double f = double(millisec) / 1000;
+  long int i = f;
+  String milliStr = millisec < 1000 ? String(millisec) : String((long int)((f - i) * 1000));
 
   return hoursStr + ":" + minuteStr + ":" + secondStr + ":" + milliStr;
-}
-
-String NTPClient::getMilliSecond(){
-  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdateFrac);
-  String milliStr = String(millisec);
-
-  return milliStr;
-}
-
-unsigned long NTPClient::getMilliSecondL(){
-  unsigned long millisec = (this->_currentEpocFrac * 1000) + (millis() - this->_lastUpdateFrac);
-
-  return millisec;
 }
 
 // Based on https://github.com/PaulStoffregen/Time/blob/master/Time.cpp

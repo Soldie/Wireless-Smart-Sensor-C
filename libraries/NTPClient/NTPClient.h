@@ -26,7 +26,7 @@ class NTPClient {
     unsigned long _lastUpdate     = 0;      // In ms
     
     unsigned long _lastUpdateFrac = 0;	    // In micros
-    double _currentEpocFrac = 0;
+    double _currentEpocFrac = 0.0;
     
 
     byte          _packetBuffer[NTP_PACKET_SIZE];
@@ -41,16 +41,6 @@ class NTPClient {
     NTPClient(UDP& udp, const char* poolServerName);
     NTPClient(UDP& udp, const char* poolServerName, int timeOffset);
     NTPClient(UDP& udp, const char* poolServerName, int timeOffset, unsigned long updateInterval);
-	
-    /**
-     * Get value for milliseconds as a string
-     */
-    String getMilliSecond();
-    
-    /**
-     * Get value for milliseconds as a unsigned long 
-     */
-    unsigned long getMilliSecondL();
 
     /**
      * Starts the underlying UDP client with the default local port

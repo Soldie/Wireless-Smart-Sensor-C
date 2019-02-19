@@ -1,5 +1,5 @@
 
-/*
+/**
  * Code for Slave node. Uses NTP sync and adxl 355.
  * 
  */
@@ -10,7 +10,7 @@ Slave wss;
 
 void setup(){
 
-  // Initializing all
+  /* Initializing all */
   wss.setupAll();
   
 }
@@ -25,25 +25,23 @@ void Slave::wait(){
   WiFiClient client = wss.getTelnetClient();
   WiFiServer server = wss.getTelnetServer();
 
-  // Listening to udp
+  /* Listening to udp */
   while(!udp.parsePacket()){
     ;
   }
     
-  // Receiving packet
+  /* Receiving packet */
   udp.read(task, 255);
 
-  // New state depending on the task sent
+  /* New state depending on the task sent */
   if (task[0] == 'r'){
     wss.setState(wss.RECORD);
   
     timeStamp = wss.getTime();
-    dif = int(60 - ((timeStamp[6] - 48) * 10) + (timeStamp[7] - 48));
-    Serial.println(dif,DEC);
-    //delay(dif * 1000);
-    //wss.sync();
-    delay(5000);
-    //miliDelay = millis();
+    dif = 60 - int(((timeStamp[6] - 48) * 10) + (timeStamp[7] - 48));
+
+    /* Start recording when the minute changes */
+    delay(dif * 1000);
   }
   else if (task[0] == 's'){
     wss.setState(wss.SYNC);
@@ -67,7 +65,7 @@ void Slave::wait(){
 
 void loop(){
 
-  // States
+  /* States */
   if (wss.getState() == wss.WAIT){
     wss.wait();
   }

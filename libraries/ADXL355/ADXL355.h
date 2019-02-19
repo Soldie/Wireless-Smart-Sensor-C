@@ -10,44 +10,44 @@
 
 class ADXL355{
   public:
-    /*
+    /**
      * Starting ADXL355
      */
     void setupADXL();
 
-    /* 
+    /**
      * ADXL in low power mode
      */
     void activateStandByMode();
     
-    /* 
+    /** 
      * ADXL in measurement mode
      */
     void activateMeasurementMode();
     
-    /* 
+    /** 
      * Diagnosis of the sensor
      */
     void activateSelfTestMode();
 
-    /* 
+    /** 
      * Resetting ADXL
      */
     void resetDevice();
 
-    /*
+    /**
      * Return data from temperature sensor
      */
     float readTemperature();
 
-    /*
+    /**
      * Get values of acceleration of each axis 
      */
     void getAxis(int *x, int *y, int *z);
     
 
   private:
-    // Memory register addresses:
+    /* Memory register addresses */
     const int XDATA3 = 0x08;
     const int XDATA2 = 0x09;
     const int XDATA1 = 0x0A;
@@ -64,7 +64,7 @@ class ADXL355{
     const int TEMP2 = 0x06;
     const int TEMP1 = 0x07;
 
-    // Device values
+    /* Device values */
     const int RANGE_2G = 0x01;
     const int RANGE_4G = 0x02;
     const int RANGE_8G = 0x03;
@@ -76,24 +76,24 @@ class ADXL355{
     const float TEMP_BIAS = 1852.0; //Accelerometer temperature bias(in ADC codes) at 25 Deg C 
     const float TEMP_SLOPE = -9.05; //Accelerometer temperature change from datasheet (LSB/degC) 
 
-    // Operations
+    /* Operations */
     const int READ_BYTE = 0x01;
     const int WRITE_BYTE = 0x00;
 
-    // Pins used for the connection with the sensor
+    /* Pins used for the connection with the sensor */
     const int CHIP_SELECT_PIN = 7;
 
-    /* 
+    /** 
      * Read multiple registries
      */
     void readMultipleData(int *addresses, int dataSize, int *readedData);
 
-    /* 
+    /** 
      * Write registry in specific device address
      */
     void writeRegister(byte thisRegister, byte thisValue);
 
-    /* 
+    /** 
      * Read registry in specific device address
      */
     unsigned int readRegistry(byte thisRegister);

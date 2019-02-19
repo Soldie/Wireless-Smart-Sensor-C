@@ -1,4 +1,4 @@
-/*
+/**
  * Header file for Master.ino
  */
 

@@ -1,5 +1,5 @@
 
-/*
+/**
  * Code for Master node. Uses NTP sync and adxl 355.
  * 
  */
@@ -10,10 +10,10 @@ Master wss;
 
 void setup(){
 
-  // Initializing all
+  /* Initializing all */
   wss.setupAll();
  
-  // Static IP address
+  /* Static IP address */
   WiFi.config(IPAddress(192, 168, 1, 24));
 
 }
@@ -29,21 +29,21 @@ void Master::wait(){
 
   client = server.available();
   
-  // Wait for a Telnet client to connect
+  /* Wait for a Telnet client to connect */
   while(!client){
     client = server.available();
   }
 
-  // Wait for the task until <ENTER>
+  /* Wait for the task until <ENTER> */
   while(aux != '\n') {
     
-    // Receiving task from the client
+    /* Receiving task from the client */
     if (client.available() > 0 ){
       
       aux = client.read();
       task = task + aux;
     }
-    // Cleaning input
+    /* Cleaning input */
     else{
     
       task = "";      
@@ -52,48 +52,46 @@ void Master::wait(){
   
   task.toCharArray(buf,8);
 
-  // Sync  
+  /* Sync */  
   if (buf[0] == 's'){
     wss.setState(wss.SYNC);
     server.write("Synchronizing all sensors via NTP.\n");    
    
-    // Tell others to sync
+    /* Tell others to sync */
     wss.sendPacketUDP(buf);
   }
-  // Record
+  /* Record */
   else if (buf[0] == 'r'){
     wss.setState(wss.RECORD);
     server.write("Start recording at specified time.\n");
 
-    // Tell others to record at specified time
+    /* Tell others to record at specified time */
     wss.sendPacketUDP(buf);
     
     timeStamp = wss.getTime();
-    dif = int(60 - ((timeStamp[6] - 48) * 10) + (timeStamp[7] - 48));
-    //delay(dif * 1000);
-    //wss.sync();
-    delay(5000);
-    //miliDelay = millis();
-    
+    dif = 60 - int(((timeStamp[6] - 48) * 10) + (timeStamp[7] - 48));
+
+    /* Start recording when the minute changes */
+    delay(dif * 1000);
   }
-  // Temperature info
+  /* Temperature info */
   else if (buf[0] == 't'){
     wss.setState(wss.TEMP);
     server.write("Temperature reading.\n");
 
-    // Tell others to read temperature
+    /* Tell others to read temperature */
     wss.sendPacketUDP(buf);
   }
-  // Self Diagnosis
+  /* Self Diagnosis */
   else if (buf[0] == 'd'){
     
   }
-  // Retrieve data back home
+  /* Retrieve data back home */
   else if (buf[0] == 'g'){
     wss.setState(wss.GATHER);
     server.write("Sending data back home.");
 
-    // Tell others to send data back home
+    /* Tell others to send data back home */
     wss.sendPacketUDP(buf);
   }
 
@@ -101,7 +99,7 @@ void Master::wait(){
 
 void loop(){
 
-  // States
+  /* States */
   if (wss.getState() == wss.WAIT){
     wss.wait();
   }

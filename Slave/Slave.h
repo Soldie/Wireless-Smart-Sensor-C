@@ -1,4 +1,4 @@
-/*
+/**
  * Header file for Slave.ino
  */
 
