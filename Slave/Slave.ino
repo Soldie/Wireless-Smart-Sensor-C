@@ -1,6 +1,6 @@
 
 /**
- * Code for Slave node. Uses NTP sync and adxl 355.
+ * Code for Slave nodes. Uses NTP sync and adxl 355.
  * 
  */
 

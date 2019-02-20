@@ -25,8 +25,7 @@ class NTPClient {
     unsigned long _currentEpoc    = 0;      // In s
     unsigned long _lastUpdate     = 0;      // In ms
     
-    unsigned long _lastUpdateFrac = 0;	    // In micros
-    double _currentEpocFrac = 0.0;
+    double        _currentEpocFrac = 0.0;   // In s
     
 
     byte          _packetBuffer[NTP_PACKET_SIZE];

@@ -228,7 +228,7 @@ void WirelessSmartSensor::sync(){
 
 void WirelessSmartSensor::record(){
 
-  unsigned long previousMillis, currentMillis;
+  unsigned long previousMillis;
   unsigned long t = 0;
   unsigned long it = getInterval();
   String timeStamp, dateStamp;
@@ -262,7 +262,6 @@ void WirelessSmartSensor::record(){
   adxl.resetDevice();
 
   previousMillis = millis();
-  currentMillis = previousMillis;
     
   /* Run during time interval */
   while (t < it){ 
@@ -274,7 +273,7 @@ void WirelessSmartSensor::record(){
     adxl.getAxis(&xdata,&ydata,&zdata);
     buffer = buffer + timeStamp + "\t" + String(xdata) + "\t" + String(ydata) + "\t" + String(zdata) + "\n";
     count = count + 1;
-    
+
     /* Writing buffer in the file */
     if (count == 10){
       outputFile.print(buffer);
@@ -282,12 +281,10 @@ void WirelessSmartSensor::record(){
       buffer = "";
     }
 
-    /* Sampling frequency */
-    delay((int) samplingInterval);
-    
-    currentMillis = millis();
-    t = currentMillis - previousMillis;
-  
+    /* It takes 1 ms to get the time stamp, the data from adxl and to put it in the buffer */
+    delay(samplingInterval - 1);
+
+    t = millis() - previousMillis;
   }
  
   setState(WAIT);

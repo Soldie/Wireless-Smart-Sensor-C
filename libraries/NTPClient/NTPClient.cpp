@@ -144,7 +144,6 @@ bool NTPClient::forceUpdate() {
   }
 
   this->_currentEpocFrac = fraction;
-  this->_lastUpdateFrac = millis();
 
   return true;
 }
@@ -161,7 +160,7 @@ bool NTPClient::update() {
 unsigned long NTPClient::getEpochTime() {
   return this->_timeOffset + // User offset
          this->_currentEpoc + // Epoc returned by the NTP server
-         ((millis() - this->_lastUpdate) / 1000); // Time since last update
+         (((this->_currentEpocFrac * 1000) + millis() - this->_lastUpdate) / 1000); // Time since last update
 }
 
 int NTPClient::getDay() {

@@ -36,7 +36,7 @@ class WirelessSmartSensor{
 	void setState(State s);
 
 	/**
-	 * Perform synchronazing operation
+	 * Perform sync operation
 	 */
 	void sync();
 
@@ -46,7 +46,7 @@ class WirelessSmartSensor{
 	void record();
 
 	/**
-	 * Perform the wating operation, listening 
+	 * Perform the waiting operation, listening 
 	 */
 	void wait();
 
@@ -125,22 +125,19 @@ class WirelessSmartSensor{
 	/* Initial state of the sensor */
 	State sensor_state = WAIT;
 
-	/* Interval to keep recording */
-	int INTERVAL;
-
-	/* The filename of the configuration file on the SD card */
-	char *CONFIG_FILE;
-
-	/* Pins used for the connection with the sensor */
-	const int CHIP_SELECT_PIN = 7;
-
 	/* the WiFi radio's status */
 	int status = WL_IDLE_STATUS; 
 
 	/* SD shield Chip Select pin */
 	const int pinSelectSD = 4; 
 
-	/* Variables that will be read */
+	/* Interval to keep recording */
+	int INTERVAL;
+
+	/* The filename of the configuration file on the SD card */
+	char *CONFIG_FILE;
+
+	/* Variables that will be read from .cfg */
 	char *SSID;
 	char *PASS;
 	int FS;
@@ -161,9 +158,6 @@ class WirelessSmartSensor{
 
     /* Record number */
 	int recordIndex = 1;
-
-	/* Determine the delay to start recording */ 
-	int miliDelay = 0;
 
 	/* Sampling interval used when recording */
 	float samplingInterval;
